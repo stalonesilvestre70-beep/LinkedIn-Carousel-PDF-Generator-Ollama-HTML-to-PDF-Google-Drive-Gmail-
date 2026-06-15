@@ -1,26 +1,310 @@
-LinkedIn Carousel PDF Generator (Ollama + HTML-to-PDF + Google Drive + Gmail)
+# LinkedIn Carousel PDF Generator (Ollama + HTML-to-PDF + Google Drive + Gmail)
 
 Generate fully branded LinkedIn carousel PDFs automatically using AI, convert them into LinkedIn-ready document posts, upload them to Google Drive, log every generation in Google Sheets, and receive the final PDF by email.
 
-Overview
+---
+
+## 🚀 Overview
 
 This n8n workflow transforms a simple topic submission into a complete LinkedIn carousel PDF ready for publishing.
 
 The user fills out a form with:
 
-Carousel topic
-Brand name
-Target audience
-Tone of voice
-Number of content slides
+* Carousel topic
+* Brand name
+* Target audience
+* Tone of voice
+* Number of content slides
 
 An Ollama-powered AI model generates structured carousel content in JSON format. The workflow then builds a visually branded HTML presentation, converts it into a square-format PDF, uploads it to Google Drive, logs the generation in Google Sheets, and sends the final document via Gmail.
 
 Perfect for:
 
-LinkedIn creators
-Personal brands
-Marketing agencies
-Coaches and consultants
-Content teams
-Social media managers
+* LinkedIn creators
+* Personal brands
+* Marketing agencies
+* Coaches and consultants
+* Content teams
+* Social media managers
+
+---
+
+## ✨ Features
+
+* AI-generated LinkedIn carousel content
+* Custom topic, audience, and tone
+* Automatic title slide, content slides, and CTA slide
+* Branded HTML carousel design
+* Square 1080×1080 LinkedIn-ready pages
+* PDF generation using Chromium/Puppeteer
+* Google Drive upload
+* Google Sheets logging
+* Gmail delivery
+* Fully self-hosted using Ollama
+
+---
+
+## ⚙️ Workflow Architecture
+
+### 1. Form Trigger
+
+Collects:
+
+* Carousel Topic
+* Brand Name
+* Target Audience
+* Tone
+* Number of Content Slides
+
+---
+
+### 2. AI Content Generation (Ollama)
+
+The AI Agent uses Ollama (Llama 3.1) to generate a structured JSON carousel.
+
+Example output:
+
+```json
+[
+  {
+    "slide_number": 1,
+    "type": "title",
+    "headline": "Powerful Hook",
+    "subtitle": "Supporting statement"
+  }
+]
+```
+
+Each slide contains:
+
+* Headline
+* Subtitle
+* Emoji
+* Bullet points
+* Slide type
+
+---
+
+### 3. Parse JSON
+
+A Code node:
+
+* Validates AI output
+* Removes markdown wrappers
+* Parses JSON safely
+* Handles malformed responses
+
+---
+
+### 4. Build HTML Carousel
+
+Generates a complete multi-page HTML document.
+
+Includes:
+
+* Brand colors
+* Typography
+* Decorative backgrounds
+* Slide numbering
+* Swipe indicators
+* CTA slide
+
+All styling is embedded inline for reliable PDF rendering.
+
+---
+
+### 5. Generate PDF
+
+Uses Puppeteer through html-pdf-node to render the carousel as a PDF.
+
+Output:
+
+* Square pages (1080×1080)
+* High-quality PDF
+* Binary file for further processing
+
+---
+
+### 6. Upload to Google Drive
+
+Automatically uploads the generated PDF to a specified Google Drive folder.
+
+Returns:
+
+* File ID
+* View URL
+* Download URL
+
+---
+
+### 7. Log to Google Sheets
+
+Stores generation history including:
+
+* Date
+* Topic
+* Brand
+* Slide count
+* File name
+* Drive link
+* Drive file ID
+* PDF size
+* Generated timestamp
+
+---
+
+### 8. Send Email Notification
+
+Sends an HTML email containing:
+
+* Topic
+* Slide count
+* File name
+* Google Drive link
+* LinkedIn posting instructions
+
+---
+
+## 📋 Requirements
+
+### Ollama
+
+Install and run Ollama locally:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull llama3.1
+```
+
+Configure the Ollama credential in n8n.
+
+---
+
+### Google Drive OAuth2
+
+Required for:
+
+* Uploading PDFs
+* File storage
+
+---
+
+### Google Sheets OAuth2
+
+Required for:
+
+* Generation logging
+* Reporting
+
+---
+
+### Gmail OAuth2
+
+Required for:
+
+* Sending completed carousel notifications
+
+---
+
+## 🖥️ Server Setup
+
+### Install html-pdf-node
+
+```bash
+npm install html-pdf-node
+```
+
+Docker:
+
+```bash
+docker exec -it n8n npm install html-pdf-node
+```
+
+---
+
+### Install Chromium
+
+The PDF renderer requires Chromium.
+
+Example for Alpine Linux:
+
+```bash
+apk add chromium
+```
+
+Verify the path:
+
+```bash
+/usr/bin/chromium-browser
+```
+
+Update the Puppeteer executable path if necessary.
+
+---
+
+## 🎨 Customization
+
+Inside the **Build HTML Slides** node:
+
+```javascript
+const BRAND_COLOR = '#0A66C2';
+const FONT = 'Arial, sans-serif';
+```
+
+You can customize:
+
+* Brand colors
+* Typography
+* Background effects
+* Slide decorations
+* CTA messaging
+
+---
+
+## 💡 Example Use Cases
+
+### Personal Branding
+
+Create educational LinkedIn carousels automatically.
+
+### Marketing Agencies
+
+Generate client carousel content at scale.
+
+### Coaches & Consultants
+
+Turn expertise into engaging document posts.
+
+### Content Teams
+
+Standardize carousel production across brands.
+
+---
+
+## 📦 Output
+
+The workflow automatically produces:
+
+* LinkedIn-ready PDF carousel
+* Google Drive file
+* Google Sheets log entry
+* Email notification
+
+Ready for immediate upload as a **LinkedIn Document Post**.
+
+---
+
+## 🔒 Notes
+
+* Designed for self-hosted n8n environments
+* Uses local Ollama models for privacy and lower AI costs
+* Requires Chromium/Puppeteer support for PDF rendering
+* Supports dynamic branding and slide counts
+
+---
+
+## 📄 License
+
+MIT License
+
+Feel free to modify and extend the workflow for your own projects and clients.
