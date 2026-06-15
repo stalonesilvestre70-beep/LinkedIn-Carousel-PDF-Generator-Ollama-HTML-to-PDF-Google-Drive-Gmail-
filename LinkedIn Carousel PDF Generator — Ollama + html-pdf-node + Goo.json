@@ -1,0 +1,864 @@
+{
+  "name": "LinkedIn Carousel PDF Generator — Ollama + html-pdf-node + Goo",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Form Input\nUser enters carousel topic, brand name, target audience, tone, and number of content slides. All five fields feed into the AI prompt and HTML brand settings.",
+        "height": 516,
+        "width": 260,
+        "color": 5
+      },
+      "id": "2367a3fa-ec5b-4ec9-a36b-99ddc0f11b1f",
+      "name": "Section — Form Input",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        624,
+        112
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## AI Slide Content Generation\nGPT-4o-mini generates a pure JSON array of slides — title, content (one key point each), and CTA type. Each slide has headline, emoji, subtitle, and bullet points.",
+        "height": 772,
+        "width": 276,
+        "color": 6
+      },
+      "id": "92de849d-4ca0-4331-a463-48a4123b90e3",
+      "name": "Section — AI Slide Content Generation",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        944,
+        80
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## JSON Parse and HTML Slide Build\nCode node parses the JSON array with error handling. Second Code node builds a multi-page HTML document with branded inline styles, background decorations, slide badges, and swipe prompt.",
+        "height": 340,
+        "width": 420,
+        "color": 6
+      },
+      "id": "a983fa6f-d831-4c92-a130-fda3971ab48f",
+      "name": "Section — JSON Parse and HTML Slide Build",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1232,
+        176
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## PDF Generation\nCode node uses html-pdf-node to convert the HTML into a square-format PDF (1080x1080px per slide). Requires npm install html-pdf-node on your n8n server.",
+        "height": 340,
+        "width": 340,
+        "color": 6
+      },
+      "id": "199eece8-c09e-4783-9893-0fd76a6854c6",
+      "name": "Section — PDF Generation",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        176
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Drive Upload, Sheet Log, and Gmail Send\nPDF uploaded to Google Drive. Sheets logs 9 columns with Drive file ID and link. Gmail sends the PDF with LinkedIn posting instructions.",
+        "height": 340,
+        "width": 692,
+        "color": 4
+      },
+      "id": "97712224-5eee-4f18-8491-a7f3bf16e455",
+      "name": "Section — Drive Upload, Sheet Log, and Gmail Send",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2096,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "formTitle": "LinkedIn Carousel Generator",
+        "formDescription": "Enter your carousel topic and AI will generate a complete 7-slide LinkedIn carousel PDF — ready to post in minutes.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Carousel Topic",
+              "placeholder": "e.g. 5 SEO mistakes beginners make / How to grow on LinkedIn / Morning routine habits",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Name or Brand",
+              "placeholder": "e.g. Rahul Sharma | Incrementors",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Target Audience",
+              "placeholder": "e.g. Startup founders, Digital marketers, Freelancers",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tone",
+              "placeholder": "e.g. Professional / Motivational / Educational / Casual",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Number of Content Slides",
+              "placeholder": "e.g. 5 (recommended: 4 to 7)",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e1b6bb83-d01b-4765-908a-62b0107db006",
+      "name": "1. Form — Carousel Topic + Details",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        688,
+        368
+      ],
+      "webhookId": "7ce673ef-3386-46ed-81b1-933224292bc7",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a LinkedIn carousel for this topic: {{ $json['Carousel Topic'] }}\n\nTarget Audience: {{ $json['Target Audience'] }}\nTone: {{ $json['Tone'] }}\nNumber of content slides: {{ $json['Number of Content Slides'] }}\nBrand: {{ $json['Your Name or Brand'] }}",
+        "options": {
+          "systemMessage": "You are an expert LinkedIn content strategist who creates high-engagement carousel posts.\n\nCreate a LinkedIn carousel with this exact structure:\n- Slide 1: Title slide (hook that stops the scroll)\n- Slides 2 to N: Content slides (one key point per slide)\n- Last slide: CTA slide (follow + engage prompt)\n\nRules for each slide:\n1. Headline: Short and punchy — max 8 words — no fluff\n2. Points: Exactly 3 bullet points per content slide — each point max 12 words\n3. Emoji: One relevant emoji for each slide\n4. Title slide: Just a powerful headline + subtitle + emoji — no bullet points\n5. CTA slide: Follow prompt + question to boost comments — no bullet points\n\nReturn ONLY a valid JSON array — no text before or after, no markdown backticks.\n\nFormat:\n[\n  {\n    \"slide_number\": 1,\n    \"type\": \"title\",\n    \"emoji\": \"🚀\",\n    \"headline\": \"Your powerful hook headline here\",\n    \"subtitle\": \"A one-line supporting statement\",\n    \"points\": []\n  },\n  {\n    \"slide_number\": 2,\n    \"type\": \"content\",\n    \"emoji\": \"💡\",\n    \"headline\": \"Point headline here\",\n    \"subtitle\": \"\",\n    \"points\": [\n      \"First bullet point — specific and actionable\",\n      \"Second bullet point — concrete advice\",\n      \"Third bullet point — clear takeaway\"\n    ]\n  },\n  {\n    \"slide_number\": 99,\n    \"type\": \"cta\",\n    \"emoji\": \"🔔\",\n    \"headline\": \"Follow for more tips like this\",\n    \"subtitle\": \"What part resonated with you most? Comment below!\",\n    \"points\": []\n  }\n]\n\nReturn ONLY the JSON array. Nothing else."
+        }
+      },
+      "id": "a64e5bdd-0a52-4cb3-8407-a2a91912de50",
+      "name": "2. AI Agent — Generate Slide Content",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        992,
+        368
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI JSON output into slides array\nconst output = $input.first().json.output || '';\n\nlet slides = [];\ntry {\n  const cleaned = output\n    .replace(/```json/gi, '')\n    .replace(/```/g, '')\n    .trim();\n\n  const match = cleaned.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/);\n  if (match) {\n    slides = JSON.parse(match[0]);\n  } else {\n    slides = JSON.parse(cleaned);\n  }\n} catch (e) {\n  throw new Error('Could not parse slide JSON from AI output. Output was: ' + output.substring(0, 300));\n}\n\nif (!Array.isArray(slides) || slides.length === 0) {\n  throw new Error('No slides returned from AI. Check the prompt.');\n}\n\nconst topic = $('1. Form — Carousel Topic + Details').item.json['Carousel Topic'];\nconst brandName = $('1. Form — Carousel Topic + Details').item.json['Your Name or Brand'];\nconst targetAudience = $('1. Form — Carousel Topic + Details').item.json['Target Audience'];\nconst tone = $('1. Form — Carousel Topic + Details').item.json['Tone'];\n\nreturn [{\n  json: {\n    slides,\n    slideCount: slides.length,\n    topic,\n    brandName,\n    targetAudience,\n    tone\n  }\n}];"
+      },
+      "id": "06081d87-aa7c-4302-8229-9f407c001d5a",
+      "name": "3. Code — Parse Slides JSON",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1296,
+        368
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// =============================================\n// BRAND SETTINGS — CUSTOMIZE THESE\n// =============================================\nconst BRAND_NAME = $('1. Form — Carousel Topic + Details').item.json['Your Name or Brand'] || 'YOUR_BRAND_NAME';\nconst BRAND_COLOR = '#0A66C2'; // LinkedIn blue — change to your brand color\nconst ACCENT_COLOR = '#ffffff';\nconst BG_COLOR = '#ffffff';\nconst TEXT_COLOR = '#1a1a1a';\nconst SLIDE_SIZE = '1080px';\nconst FONT = 'Arial, sans-serif';\n// =============================================\n\nconst slides = $json.slides;\nconst topic = $json.topic;\n\nlet slidesHtml = '';\n\nfor (const slide of slides) {\n  const isTitle = slide.type === 'title';\n  const isCta = slide.type === 'cta';\n\n  const slideBadge = (!isTitle && !isCta)\n    ? `<div style=\"position:absolute;top:32px;right:32px;background:rgba(255,255,255,0.2);color:${ACCENT_COLOR};border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;\">${slide.slide_number}</div>`\n    : '';\n\n  let pointsHtml = '';\n  if (slide.points && slide.points.length > 0) {\n    pointsHtml = `\n      <ul style=\"list-style:none;padding:0;margin:20px 0 0;\">\n        ${slide.points.map(point => `\n          <li style=\"display:flex;align-items:flex-start;margin-bottom:18px;\">\n            <span style=\"min-width:28px;height:28px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:14px;margin-top:2px;font-size:13px;font-weight:700;color:${ACCENT_COLOR};\">✓</span>\n            <span style=\"font-size:20px;line-height:1.5;color:${ACCENT_COLOR};font-weight:400;\">${point}</span>\n          </li>`).join('')}\n      </ul>`;\n  }\n\n  const subtitleHtml = slide.subtitle\n    ? `<p style=\"font-size:${isTitle ? '22px' : '18px'};color:rgba(255,255,255,0.8);margin:12px 0 0;font-weight:300;line-height:1.4;\">${slide.subtitle}</p>`\n    : '';\n\n  const swipePrompt = isTitle\n    ? `<div style=\"position:absolute;bottom:32px;right:32px;background:rgba(255,255,255,0.2);border-radius:24px;padding:10px 20px;\">\n         <span style=\"color:${ACCENT_COLOR};font-size:15px;font-weight:500;\">Swipe → </span>\n       </div>`\n    : '';\n\n  const brandTag = `<div style=\"position:absolute;bottom:${isTitle ? '32px' : '28px'};left:32px;\">\n    <span style=\"color:rgba(255,255,255,0.7);font-size:14px;font-weight:500;\">${BRAND_NAME}</span>\n  </div>`;\n\n  slidesHtml += `\n    <div style=\"width:${SLIDE_SIZE};height:${SLIDE_SIZE};background:linear-gradient(135deg, ${BRAND_COLOR} 0%, #083f7a 100%);position:relative;display:flex;flex-direction:column;justify-content:center;padding:56px;box-sizing:border-box;page-break-after:always;overflow:hidden;\">\n      <div style=\"position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.05);\"></div>\n      <div style=\"position:absolute;bottom:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.04);\"></div>\n      ${slideBadge}\n      ${brandTag}\n      ${swipePrompt}\n      <div style=\"position:relative;z-index:2;\">\n        <div style=\"font-size:${isTitle ? '72px' : '56px'};margin-bottom:16px;\">${slide.emoji}</div>\n        <h1 style=\"font-size:${isTitle ? '48px' : '36px'};font-weight:800;color:${ACCENT_COLOR};margin:0;line-height:1.2;\">${slide.headline}</h1>\n        ${subtitleHtml}\n        ${pointsHtml}\n      </div>\n    </div>`;\n}\n\nconst fullHtml = `<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { font-family: ${FONT}; background: #000; }\n    @page { size: ${SLIDE_SIZE} ${SLIDE_SIZE}; margin: 0; }\n  </style>\n</head>\n<body>\n${slidesHtml}\n</body>\n</html>`;\n\nconst cleanTopic = topic\n  .toLowerCase()\n  .replace(/[^a-z0-9\\s]/g, '')\n  .replace(/\\s+/g, '-')\n  .substring(0, 50);\n\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\nconst fileName = `linkedin-carousel-${cleanTopic}-${dateStr}.pdf`;\n\nreturn [{\n  json: {\n    fullHtml,\n    fileName,\n    slideCount: slides.length,\n    topic: $json.topic,\n    brandName: $json.brandName,\n    dateStr\n  }\n}];"
+      },
+      "id": "1301abb9-bc60-4175-b000-e370a0bf2d3e",
+      "name": "4. Code — Build HTML Slides",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1536,
+        368
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Використовуємо puppeteer напряму з папки встановленого модуля\nconst puppeteer = require('/usr/local/lib/node_modules/html-pdf-node/node_modules/puppeteer');\n\nconst htmlContent = $json.fullHtml;\nconst fileName = $json.fileName || 'linkedin-carousel.pdf';\nconst slideCount = $json.slideCount;\nconst slideSize = 1080;\n\nlet browser = null;\n\ntry {\n  // 1. Запускаємо той Chromium, який ми встановили через apk\n  browser = await puppeteer.launch({\n    executablePath: '/usr/bin/chromium-browser',\n    args: [\n      '--no-sandbox',\n      '--disable-setuid-sandbox',\n      '--disable-dev-shm-usage',\n      '--disable-gpu'\n    ]\n  });\n\n  const page = await browser.newPage();\n\n  // 2. Завантажуємо HTML-контент у вкладку\n  await page.setContent(htmlContent, { waitUntil: 'networkidle0' });\n\n  // 3. Налаштування рендерингу PDF\n  const options = {\n    format: 'A4',\n    width: `${slideSize}px`,\n    height: `${slideSize}px`,\n    printBackground: true,\n    margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' },\n    pageRanges: `1-${slideCount}`\n  };\n\n  // Рендеримо в PDF\n  const pdfBuffer = await page.pdf(options);\n  const pdfBase64 = pdfBuffer.toString('base64');\n\n  // Закриваємо браузер\n  await browser.close();\n\n  // Повертаємо дані в n8n з правильною структурою бінарного файлу\n  return [\n    {\n      json: {\n        fileName: fileName,\n        slideCount: slideCount,\n        topic: $json.topic,\n        brandName: $json.brandName,\n        pdfSize: pdfBuffer.length,\n        mimeType: 'application/pdf'\n      },\n      binary: {\n        data: {\n          data: pdfBase64,\n          mimeType: 'application/pdf',\n          fileName: fileName,\n          fileExtension: 'pdf'\n        }\n      }\n    }\n  ];\n\n} catch (error) {\n  // Якщо щось пішло не так, обов'язково закриваємо браузер, щоб не «жерти» пам'ять Docker\n  if (browser !== null) {\n    await browser.close();\n  }\n  // Перенаправляємо помилку далі в n8n\n  throw new Error(`PDF Generation failed: ${error.message}`);\n}"
+      },
+      "id": "b4768758-3602-499f-b245-154883d73720",
+      "name": "5. Code — Generate PDF",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1776,
+        368
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1XGGqdX5aWdR8CNEGUIOKBKcXun_gxO3r",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "67db43f6-b6fe-4fca-bc07-19be767f9d0e",
+      "name": "6. Google Drive — Upload PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        2144,
+        368
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iZ9mGNN3sEmbMVmA",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1OzXHmB1J2SqjAezQcY-qzKKjqTb60makdRPG8rcgkGI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Аркуш1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "kind",
+              "displayName": "kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "mimeType",
+              "displayName": "mimeType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "starred",
+              "displayName": "starred",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "trashed",
+              "displayName": "trashed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "explicitlyTrashed",
+              "displayName": "explicitlyTrashed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "parents",
+              "displayName": "parents",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "spaces",
+              "displayName": "spaces",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "version",
+              "displayName": "version",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "webContentLink",
+              "displayName": "webContentLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "webViewLink",
+              "displayName": "webViewLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "iconLink",
+              "displayName": "iconLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "hasThumbnail",
+              "displayName": "hasThumbnail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thumbnailVersion",
+              "displayName": "thumbnailVersion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "viewedByMe",
+              "displayName": "viewedByMe",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "createdTime",
+              "displayName": "createdTime",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "modifiedTime",
+              "displayName": "modifiedTime",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "modifiedByMeTime",
+              "displayName": "modifiedByMeTime",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "modifiedByMe",
+              "displayName": "modifiedByMe",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owners",
+              "displayName": "owners",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lastModifyingUser",
+              "displayName": "lastModifyingUser",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shared",
+              "displayName": "shared",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ownedByMe",
+              "displayName": "ownedByMe",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "downloadRestrictions",
+              "displayName": "downloadRestrictions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "capabilities",
+              "displayName": "capabilities",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "viewersCanCopyContent",
+              "displayName": "viewersCanCopyContent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "copyRequiresWriterPermission",
+              "displayName": "copyRequiresWriterPermission",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "writersCanShare",
+              "displayName": "writersCanShare",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "permissions",
+              "displayName": "permissions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "permissionIds",
+              "displayName": "permissionIds",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "originalFilename",
+              "displayName": "originalFilename",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fullFileExtension",
+              "displayName": "fullFileExtension",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fileExtension",
+              "displayName": "fileExtension",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "md5Checksum",
+              "displayName": "md5Checksum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sha1Checksum",
+              "displayName": "sha1Checksum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sha256Checksum",
+              "displayName": "sha256Checksum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "size",
+              "displayName": "size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "quotaBytesUsed",
+              "displayName": "quotaBytesUsed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "headRevisionId",
+              "displayName": "headRevisionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "isAppAuthorized",
+              "displayName": "isAppAuthorized",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "clientEncryptionDetails",
+              "displayName": "clientEncryptionDetails",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkShareMetadata",
+              "displayName": "linkShareMetadata",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "inheritedPermissionsDisabled",
+              "displayName": "inheritedPermissionsDisabled",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c593dbfd-2c15-489c-9b71-065bda9518f9",
+      "name": "7. Google Sheets — Log Carousel",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2384,
+        368
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "I4Qo8tWh9pMRWse7",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "stalonesilvestre70@gmail.com",
+        "subject": "=🎨 LinkedIn Carousel Ready — {{ $('5. Code — Generate PDF').item.json.topic }}",
+        "message": "=<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;\">\n  <div style=\"background:#0A66C2;padding:28px;text-align:center;border-radius:8px 8px 0 0;\">\n    <h1 style=\"color:#ffffff;font-size:22px;margin:0;\">Your LinkedIn Carousel is Ready</h1>\n  </div>\n  <div style=\"padding:28px;background:#f9f9f9;\">\n    <p style=\"font-size:16px;color:#333;\">Your carousel PDF has been generated and uploaded to Google Drive.</p>\n    <table style=\"width:100%;margin:20px 0;border-collapse:collapse;\">\n      <tr><td style=\"padding:8px;font-weight:bold;color:#555;\">Topic:</td><td style=\"padding:8px;color:#333;\">{{ $('5. Code — Generate PDF').item.json.topic }}</td></tr>\n      <tr style=\"background:#fff;\"><td style=\"padding:8px;font-weight:bold;color:#555;\">Slides:</td><td style=\"padding:8px;color:#333;\">{{ $('5. Code — Generate PDF').item.json.slideCount }} slides</td></tr>\n      <tr><td style=\"padding:8px;font-weight:bold;color:#555;\">File:</td><td style=\"padding:8px;color:#333;\">{{ $('5. Code — Generate PDF').item.json.fileName }}</td></tr>\n      <tr style=\"background:#fff;\"><td style=\"padding:8px;font-weight:bold;color:#555;\">Drive Link:</td><td style=\"padding:8px;\"><a href={{ $('6. Google Drive — Upload PDF').item.json.webViewLink }}/view\" style=\"color:#0A66C2;\">Open in Google Drive</a></td></tr>\n    </table>\n    <div style=\"background:#e8f4fd;border-left:4px solid #0A66C2;padding:16px;border-radius:0 8px 8px 0;margin-top:20px;\">\n      <p style=\"margin:0;font-size:14px;color:#333;font-weight:600;\">How to post on LinkedIn:</p>\n      <ol style=\"margin:8px 0 0;padding-left:20px;font-size:14px;color:#555;line-height:1.8;\">\n        <li>Download the PDF from Google Drive</li>\n        <li>Go to LinkedIn → Create Post → Add document</li>\n        <li>Upload the PDF — LinkedIn converts it to carousel</li>\n        <li>Add your caption → Post!</li>\n      </ol>\n    </div>\n  </div>\n  <div style=\"background:#0A66C2;padding:16px;text-align:center;border-radius:0 0 8px 8px;\">\n    <p style=\"color:rgba(255,255,255,0.8);font-size:12px;margin:0;\">Generated by n8n LinkedIn Carousel Generator</p>\n  </div>\n</div>",
+        "options": {
+          "senderName": "LinkedIn Carousel Generator"
+        }
+      },
+      "id": "08709b21-2179-4e40-81c3-0693343237e9",
+      "name": "8. Gmail — Email PDF to You",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        2624,
+        368
+      ],
+      "webhookId": "14676508-d610-4ffa-ba19-79b00b08a48d",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "knEQoJTmN5Cl7nRR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.1:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        992,
+        592
+      ],
+      "id": "916167c6-4b16-47d0-adba-f343d243c40f",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "BWTYL66O3NlrFB5o",
+          "name": "Ollama account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## LinkedIn Carousel PDF Generator — Ollama + html-pdf-node + Google Drive + Sheets + Gmail\n\nFor LinkedIn creators who want to automatically generate a fully branded carousel PDF from a single topic — ready to upload directly to LinkedIn as a document post. Submit the topic, brand name, target audience, tone, and slide count via the form. GPT-4o-mini returns a pure JSON array of structured slides — title slide, content slides, and a CTA slide — each with headline, emoji, subtitle, and bullet points. A Code node parses the JSON array with error handling. A second Code node builds a complete multi-page HTML document with branded inline styles, background decorations, slide number badges, and a swipe prompt. A third Code node uses html-pdf-node to convert the HTML into a square-format PDF binary (1080x1080px per slide). The PDF is uploaded to Google Drive. Google Sheets logs the run with Drive file ID and link. Gmail emails the PDF to you with posting instructions.\n\n## How it works\n- **1. Form — Carousel Topic + Details** collects topic, brand name, target audience, tone, and number of content slides\n- **2. AI Agent — Generate Slide Content** uses GPT-4o-mini to return a pure JSON array of slides — title, content, and CTA types\n- **OpenAI — Ollama Model** language model attached to the AI Agent\n- **3. Code — Parse Slides JSON** strips markdown fences, finds the JSON array, validates it, and extracts form metadata\n- **4. Code — Build HTML Slides** reads brand settings (color, font, size), loops slides to build one HTML div per slide with inline styles, background circles, brand tag, and swipe prompt — wraps in a full HTML document\n- **5. Code — Generate PDF** uses html-pdf-node to convert HTML to PDF binary (requires npm install html-pdf-node on your n8n server), returns binary data and metadata\n- **6. Google Drive — Upload PDF** uploads the PDF binary to your target Drive folder\n- **7. Google Sheets — Log Carousel** appends 9 columns including Drive file ID and constructed Drive link\n- **8. Gmail — Email PDF to You** sends an HTML email with the Drive link and LinkedIn posting instructions\n\n## Set up steps\n1. Install html-pdf-node on your n8n server: `npm install html-pdf-node` (Docker: `docker exec -it n8n npm install html-pdf-node`)\n2. In **Ollama — Llama 3,2  Model** — connect your OpenAI credential\n3. In **6. Google Drive — Upload PDF** — connect your Google Drive OAuth2 credential and replace `YOUR_GDRIVE_FOLDER_ID`\n4. In **7. Google Sheets — Log Carousel** — connect your Google Sheets OAuth2 credential and replace `YOUR_GOOGLE_SHEET_ID`. Create a tab named Carousel Log with columns: Date, Topic, Brand Name, Slide Count, File Name, Drive Link, Drive File ID, PDF Size (bytes), Generated On\n5. In **8. Gmail — Email PDF to You** — connect your Gmail OAuth2 credential and replace `YOUR_EMAIL_ADDRESS`\n6. In **4. Code — Build HTML Slides** — update the BRAND SETTINGS section: replace BRAND_COLOR with your hex color, update FONT if needed",
+        "height": 1300,
+        "width": 668,
+        "color": 4
+      },
+      "id": "b238ee5d-fe17-4fab-b7d7-60517b7c0604",
+      "name": "Overview1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -96
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "5. Code — Generate PDF": {
+      "main": [
+        [
+          {
+            "node": "6. Google Drive — Upload PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Code — Parse Slides JSON": {
+      "main": [
+        [
+          {
+            "node": "4. Code — Build HTML Slides",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Code — Build HTML Slides": {
+      "main": [
+        [
+          {
+            "node": "5. Code — Generate PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Google Drive — Upload PDF": {
+      "main": [
+        [
+          {
+            "node": "7. Google Sheets — Log Carousel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7. Google Sheets — Log Carousel": {
+      "main": [
+        [
+          {
+            "node": "8. Gmail — Email PDF to You",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Form — Carousel Topic + Details": {
+      "main": [
+        [
+          {
+            "node": "2. AI Agent — Generate Slide Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. AI Agent — Generate Slide Content": {
+      "main": [
+        [
+          {
+            "node": "3. Code — Parse Slides JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "2. AI Agent — Generate Slide Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f950c5bd-1910-47b0-a16a-b432e1fd5b10",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "nodeGroups": [],
+  "id": "CRFD4Rk3uALnAFP0",
+  "tags": []
+}
